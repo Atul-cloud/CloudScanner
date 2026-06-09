@@ -8,18 +8,14 @@ import os
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
-# Watchlist updated to include Bitcoin alongside Forex and Indices
 SYMBOLS = ["^NDX", "^NSEI", "EURUSD=X", "EURJPY=X", "EURAUD=X", "USDCAD=X", "BTC-USD"]
 
 def detect_star_patterns(df):
     if len(df) < 20:
         return None, None
 
-    # Trailing 12-candle baseline volatility window
     historical_bodies = (df['Close'] - df['Open']).abs().iloc[-17:-5]
     avg_body = historical_bodies.mean()
-    
-    # Target the last fully finalized, closed candle block (iloc[-2])
     candle_timestamp = df.index[-2].strftime('%Y-%m-%d %H:%M')
 
     # --- 3-CANDLE PATTERN LOGIC ---
@@ -60,7 +56,7 @@ def detect_star_patterns(df):
 
 def send_alert(msg):
     if not TOKEN or not CHAT_ID:
-        print("⚠️ Missing Telegram environment variables.")
+        print("⚠️ Missing Telegram credentials.")
         return
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     try:
@@ -74,6 +70,9 @@ if __name__ == "__main__":
         sys.exit(1)
         
     target_tf = sys.argv[1]
+    
+    # NEW: Instant Telegram ping to confirm the bot is alive and working
+    send_alert(f"🤖 Cloud Action Started: Running {target_tf} Scan...")
     print(f"🚀 Cloud Engine Initialized for Timeframe: {target_tf}")
 
     for sym in SYMBOLS:
@@ -96,4 +95,4 @@ if __name__ == "__main__":
                 
         except Exception as e:
             print(f"Error checking asset {sym}: {e}")
-          
+            
