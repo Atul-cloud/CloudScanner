@@ -1,0 +1,37 @@
+name: Beast 4H Weekday Cloud Scanner
+
+on:
+  schedule:
+    # 5: 5 minutes past the hour (allows data to settle on Yahoo servers)
+    # */4: Every 4 hours 
+    # 1-5: Monday to Friday strictly (0 and 6 are Sunday/Saturday, which are skipped)
+    - cron: '5 */4 * * 1-5'
+  
+  # Keeps the manual trigger button active in your Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-scanner:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone Repository Code
+      uses: actions/checkout@v4
+
+    - name: Initialize Cloud Python Engine
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install Application Requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install yfinance pandas requests
+
+    - name: Execute 4-Hour Timeframe Check
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: python cloud_scanner.py 4h
+      
